@@ -1,9 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
-import citiesReducer from 'context/features/cities/citiesSlice';
+import audioPlayerReducer from 'context/features/audioPlayerSlice';
+import globalReducer from 'context/features/globalSlice';
+import uploadFilesReducer from 'context/features/uploadFilesSlice';
 
 export const store = configureStore({
     reducer: {
-        cities: citiesReducer,
+        uploadFiles: uploadFilesReducer,
+        audioPlayer: audioPlayerReducer,
+        global: globalReducer,
     },
 });
 

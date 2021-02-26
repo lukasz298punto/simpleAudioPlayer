@@ -1,13 +1,20 @@
 import {
+    LoadingOutlined,
     PauseCircleOutlined,
     PlayCircleOutlined,
     UploadOutlined,
 } from '@ant-design/icons';
-import { Button, Image, message, Upload } from 'antd';
-import 'antd/dist/antd.css';
+import { Button, Image, List, message, Spin, Upload } from 'antd';
+import Avatar from 'antd/lib/avatar/avatar';
+import { RcFile } from 'antd/lib/upload';
+import 'App.less';
+import { selectLoading, setLoading } from 'context/features/globalSlice';
+import { addFile, selectUploadFiles } from 'context/features/uploadFilesSlice';
 import { intervalToDuration } from 'date-fns';
 import * as jsmediatags from 'jsmediatags-web';
+import { get } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 interface FileInfo {
     tags: {
@@ -15,6 +22,10 @@ interface FileInfo {
             data: number[];
             format: string;
         };
+        year?: string;
+        album?: string;
+        artist?: string;
+        title?: string;
     };
 }
 
@@ -32,25 +43,66 @@ const possibleAudioType = [
 
 function App() {
     const ref = useRef<HTMLAudioElement | null>(null);
-    const [fileList, setFileList] = useState<any[]>([]);
     const [src, setSrc] = useState('');
+    const dispatch = useDispatch();
+    const files = useSelector(selectUploadFiles);
+    const loading = useSelector(selectLoading);
 
-    async function readFile(files: File) {
-        const res = await convertToArrayBuffer(files);
-        // const d: any = document.getElementById('audio');
-        const x = ref?.current;
-        if (x) {
-            x.src = res;
+    console.log(files, 'files');
+
+    async function readFile(file: RcFile) {
+        dispatch(setLoading(true));
+
+        try {
+            const src = await convertToArrayBuffer(file);
+            // const d: any = document.getElementById('audio');
+            const x = ref?.current;
+            if (x) {
+                x.src = src;
+            }
+            const tags = await getTags(file);
+            const cover = await getAudioCover(tags);
+
+            console.log(tags, 'tags');
+            console.log(get(tags, 'album'), 'album');
+            // setSrc(coverSrc);
+
+            dispatch(
+                addFile({
+                    uid: file.uid,
+                    type: file.type,
+                    cover,
+                    album: get(tags, 'album'),
+                    artist: get(tags, 'artist'),
+                    title: get(tags, 'title'),
+                    year: get(tags, 'year'),
+                    src,
+                })
+            );
+        } catch (e) {
+            message.error(`Error while processing audio files`);
+        } finally {
+            dispatch(setLoading(false));
         }
-        const coverSrc = await getAudioCover(files);
-
-        setSrc(coverSrc);
     }
 
-    function convertToArrayBuffer(files: any) {
+    function getTags(file: RcFile) {
+        return new Promise<FileInfo['tags']>((resolve, reject) => {
+            jsmediatags.read(file, {
+                onSuccess({ tags }: FileInfo) {
+                    resolve(tags);
+                },
+                onError(error: any) {
+                    reject(error);
+                },
+            });
+        });
+    }
+
+    function convertToArrayBuffer(file: RcFile) {
         return new Promise<string>((resolve, reject) => {
             var fr = new FileReader();
-            fr.readAsDataURL(files);
+            fr.readAsDataURL(file);
             fr.onload = () => {
                 resolve(fr.result as string);
             };
@@ -60,34 +112,20 @@ function App() {
         });
     }
 
-    const getAudioCover = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            jsmediatags.read(file, {
-                onSuccess({ tags }: FileInfo) {
-                    console.log(tags, 'tags');
-                    const { picture } = tags;
-                    if (!picture) {
-                        return reject('File doesnt contain cover');
-                    }
+    const getAudioCover = (tags: FileInfo['tags']) => {
+        const { picture } = tags;
 
-                    const { data } = picture;
-                    const base64String = data
-                        .map((value) => String.fromCharCode(value))
-                        .join('');
-                    const coverSrc = `data:${
-                        picture.format
-                    };base64,${window.btoa(base64String)}`;
+        if (!picture) {
+            return null;
+        }
 
-                    resolve(coverSrc);
-                },
-                onError(error: Error) {
-                    reject(error);
-                },
-            });
-        });
+        const { data } = picture;
+        const base64String = data
+            .map((value) => String.fromCharCode(value))
+            .join('');
+
+        return `data:${picture.format};base64,${window.btoa(base64String)}`;
     };
-
-    useEffect(() => {}, []);
 
     const validateAudioFile = (type: string) =>
         possibleAudioType.includes(type);
@@ -106,53 +144,82 @@ function App() {
         )}:${formatNumberTime(intDuration.seconds || 0)}`;
     };
 
+    useEffect(() => {
+        const audioRef = document.getElementById('audio');
+        console.log(audioRef);
+    }, []);
+
+    const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
+
     return (
-        <div className="App">
-            <audio
-                id="audio"
-                ref={ref}
-                controls
-                onTimeUpdate={(e) =>
-                    console.log(
-                        getAudioDuration(ref?.current?.currentTime || 0)
-                    )
-                }
-            />
-            <Image src={src} />
-            <Upload
-                fileList={fileList}
-                beforeUpload={(file) => {
-                    if (!validateAudioFile(file.type)) {
-                        message.error('Incorrect audio format');
-                        return false;
+        <Spin spinning={loading}>
+            <div className="App">
+                <audio
+                    id="audio"
+                    ref={ref}
+                    controls
+                    onTimeUpdate={(e) =>
+                        console.log(
+                            getAudioDuration(ref?.current?.currentTime || 0)
+                        )
                     }
-                    console.log(file.type, 'file');
-                    readFile(file);
-                    setFileList([file]);
-                    return false;
-                }}
-            >
-                <Button icon={<UploadOutlined />}>Select File</Button>
-            </Upload>
-            <Button
-                type="primary"
-                shape="circle"
-                size="large"
-                icon={
-                    <PlayCircleOutlined onClick={() => ref.current?.play()} />
-                }
-            />
-            <Button
-                type="primary"
-                shape="circle"
-                size="large"
-                icon={
-                    <PauseCircleOutlined onClick={() => ref.current?.pause()} />
-                }
-            />
-            {getAudioDuration(ref.current?.duration || 0)}
-            {console.log()}
-        </div>
+                />
+                <Image src={src} />
+                <Upload
+                    multiple
+                    showUploadList={false}
+                    beforeUpload={(file) => {
+                        if (validateAudioFile(file.type)) {
+                            readFile(file);
+                        } else {
+                            message.error(
+                                `Incorrect audio format from ${file.name}`
+                            );
+                        }
+
+                        return false;
+                    }}
+                >
+                    <Button type="primary" icon={<UploadOutlined />}>
+                        Select File
+                    </Button>
+                </Upload>
+                <Button
+                    type="primary"
+                    shape="circle"
+                    size="large"
+                    icon={
+                        <PlayCircleOutlined
+                            onClick={() => ref.current?.play()}
+                        />
+                    }
+                />
+                <Button
+                    type="primary"
+                    shape="circle"
+                    size="large"
+                    icon={
+                        <PauseCircleOutlined
+                            onClick={() => ref.current?.pause()}
+                        />
+                    }
+                />
+                {getAudioDuration(ref.current?.duration || 0)}
+                <List
+                    itemLayout="horizontal"
+                    dataSource={files}
+                    renderItem={(item) => (
+                        <List.Item>
+                            <List.Item.Meta
+                                avatar={<Avatar src={item.cover} />}
+                                title={item.title}
+                                description="Ant Design, a design language for background applications, is refined by Ant UED Team"
+                            />
+                        </List.Item>
+                    )}
+                />
+            </div>
+        </Spin>
     );
 }
 
