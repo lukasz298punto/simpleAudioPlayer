@@ -14,6 +14,7 @@ import { intervalToDuration } from 'date-fns';
 import * as jsmediatags from 'jsmediatags-web';
 import { get } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
+import { Scrollbars } from 'react-custom-scrollbars';
 import { useDispatch, useSelector } from 'react-redux';
 
 interface FileInfo {
@@ -153,72 +154,88 @@ function App() {
 
     return (
         <Spin spinning={loading}>
-            <div className="App">
-                <audio
-                    id="audio"
-                    ref={ref}
-                    controls
-                    onTimeUpdate={(e) =>
-                        console.log(
-                            getAudioDuration(ref?.current?.currentTime || 0)
-                        )
-                    }
-                />
-                <Image src={src} />
-                <Upload
-                    multiple
-                    showUploadList={false}
-                    beforeUpload={(file) => {
-                        if (validateAudioFile(file.type)) {
-                            readFile(file);
-                        } else {
-                            message.error(
-                                `Incorrect audio format from ${file.name}`
-                            );
+            <Scrollbars
+                style={{ height: '100vh' }}
+                renderThumbVertical={({ style, ...props }) => {
+                    const thumbStyle = {
+                        color: `red`,
+                    };
+                    return (
+                        <div
+                            className="bg-color-primary"
+                            style={{ ...style, ...thumbStyle }}
+                            {...props}
+                        />
+                    );
+                }}
+            >
+                <div className="App">
+                    <audio
+                        id="audio"
+                        ref={ref}
+                        controls
+                        onTimeUpdate={(e) =>
+                            console.log(
+                                getAudioDuration(ref?.current?.currentTime || 0)
+                            )
                         }
+                    />
+                    <Image src={src} />
+                    <Upload
+                        multiple
+                        showUploadList={false}
+                        beforeUpload={(file) => {
+                            if (validateAudioFile(file.type)) {
+                                readFile(file);
+                            } else {
+                                message.error(
+                                    `Incorrect audio format from ${file.name}`
+                                );
+                            }
 
-                        return false;
-                    }}
-                >
-                    <Button type="primary" icon={<UploadOutlined />}>
-                        Select File
-                    </Button>
-                </Upload>
-                <Button
-                    type="primary"
-                    shape="circle"
-                    size="large"
-                    icon={
-                        <PlayCircleOutlined
-                            onClick={() => ref.current?.play()}
-                        />
-                    }
-                />
-                <Button
-                    type="primary"
-                    shape="circle"
-                    size="large"
-                    icon={
-                        <PauseCircleOutlined
-                            onClick={() => ref.current?.pause()}
-                        />
-                    }
-                />
-                {getAudioDuration(ref.current?.duration || 0)}
-                <List
-                    itemLayout="horizontal"
-                    dataSource={files}
-                    renderItem={(item) => (
-                        <List.Item>
-                            <List.Item.Meta
-                                avatar={<Avatar src={item.cover} />}
-                                title={item.title}
-                                description="Ant Design, a design language for background applications, is refined by Ant UED Team"
+                            return false;
+                        }}
+                    >
+                        <Button type="primary" icon={<UploadOutlined />}>
+                            Select File
+                        </Button>
+                    </Upload>
+                    <Button
+                        type="primary"
+                        shape="circle"
+                        size="large"
+                        icon={
+                            <PlayCircleOutlined
+                                onClick={() => ref.current?.play()}
                             />
-                        </List.Item>
-                    )}
-                />
-            </div>
+                        }
+                    />
+                    <Button
+                        type="primary"
+                        shape="circle"
+                        size="large"
+                        icon={
+                            <PauseCircleOutlined
+                                onClick={() => ref.current?.pause()}
+                            />
+                        }
+                    />
+                    {getAudioDuration(ref.current?.duration || 0)}
+                    <List
+                        itemLayout="horizontal"
+                        dataSource={files}
+                        renderItem={(item) => (
+                            <List.Item>
+                                <List.Item.Meta
+                                    avatar={<Avatar src={item.cover} />}
+                                    title={item.title}
+                                    description="Ant Design, a design language for background applications, is refined by Ant UED Team"
+                                />
+                            </List.Item>
+                        )}
+                    />
+                </div>
+            </Scrollbars>
         </Spin>
     );
 }
