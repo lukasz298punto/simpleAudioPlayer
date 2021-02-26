@@ -1,19 +1,22 @@
 {
   "files": {
-    "main.js": "/simpleAudioPlayer/static/js/main.5b2bd891.chunk.js",
-    "main.js.map": "/simpleAudioPlayer/static/js/main.5b2bd891.chunk.js.map",
-    "runtime-main.js": "/simpleAudioPlayer/static/js/runtime-main.0ade37e7.js",
-    "runtime-main.js.map": "/simpleAudioPlayer/static/js/runtime-main.0ade37e7.js.map",
-    "static/js/2.7a2328ce.chunk.js": "/simpleAudioPlayer/static/js/2.7a2328ce.chunk.js",
-    "static/js/2.7a2328ce.chunk.js.map": "/simpleAudioPlayer/static/js/2.7a2328ce.chunk.js.map",
-    "static/js/3.82afc1f3.chunk.js": "/simpleAudioPlayer/static/js/3.82afc1f3.chunk.js",
-    "static/js/3.82afc1f3.chunk.js.map": "/simpleAudioPlayer/static/js/3.82afc1f3.chunk.js.map",
+    "main.css": "/simpleAudioPlayer/static/css/main.43c82332.chunk.css",
+    "main.js": "/simpleAudioPlayer/static/js/main.b8217ef6.chunk.js",
+    "main.js.map": "/simpleAudioPlayer/static/js/main.b8217ef6.chunk.js.map",
+    "runtime-main.js": "/simpleAudioPlayer/static/js/runtime-main.f9f7395a.js",
+    "runtime-main.js.map": "/simpleAudioPlayer/static/js/runtime-main.f9f7395a.js.map",
+    "static/js/2.3b64a2e5.chunk.js": "/simpleAudioPlayer/static/js/2.3b64a2e5.chunk.js",
+    "static/js/2.3b64a2e5.chunk.js.map": "/simpleAudioPlayer/static/js/2.3b64a2e5.chunk.js.map",
+    "static/js/3.bc44a71b.chunk.js": "/simpleAudioPlayer/static/js/3.bc44a71b.chunk.js",
+    "static/js/3.bc44a71b.chunk.js.map": "/simpleAudioPlayer/static/js/3.bc44a71b.chunk.js.map",
     "index.html": "/simpleAudioPlayer/index.html",
-    "static/js/2.7a2328ce.chunk.js.LICENSE.txt": "/simpleAudioPlayer/static/js/2.7a2328ce.chunk.js.LICENSE.txt"
+    "static/css/main.43c82332.chunk.css.map": "/simpleAudioPlayer/static/css/main.43c82332.chunk.css.map",
+    "static/js/2.3b64a2e5.chunk.js.LICENSE.txt": "/simpleAudioPlayer/static/js/2.3b64a2e5.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.0ade37e7.js",
-    "static/js/2.7a2328ce.chunk.js",
-    "static/js/main.5b2bd891.chunk.js"
+    "static/js/runtime-main.f9f7395a.js",
+    "static/js/2.3b64a2e5.chunk.js",
+    "static/css/main.43c82332.chunk.css",
+    "static/js/main.b8217ef6.chunk.js"
   ]
 }
