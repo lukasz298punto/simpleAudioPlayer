@@ -1,19 +1,14 @@
-import {
-    LoadingOutlined,
-    PauseCircleOutlined,
-    PlayCircleOutlined,
-    UploadOutlined,
-} from '@ant-design/icons';
+import { UploadOutlined } from '@ant-design/icons';
 import { Button, Image, List, message, Spin, Upload } from 'antd';
 import Avatar from 'antd/lib/avatar/avatar';
 import { RcFile } from 'antd/lib/upload';
 import 'App.less';
+import AudioPlayer from 'components/AudioPlayer';
 import { selectLoading, setLoading } from 'context/features/globalSlice';
 import { addFile, selectUploadFiles } from 'context/features/uploadFilesSlice';
-import { intervalToDuration } from 'date-fns';
 import * as jsmediatags from 'jsmediatags-web';
 import { get } from 'lodash';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -131,31 +126,10 @@ function App() {
     const validateAudioFile = (type: string) =>
         possibleAudioType.includes(type);
 
-    const formatNumberTime = (time: number) =>
-        time < 10 ? `0${time}` : `${time}`;
-
-    const getAudioDuration = (duration: number) => {
-        const intDuration = intervalToDuration({
-            start: 0,
-            end: duration * 1000,
-        });
-
-        return `${formatNumberTime(
-            intDuration.minutes || 0
-        )}:${formatNumberTime(intDuration.seconds || 0)}`;
-    };
-
-    useEffect(() => {
-        const audioRef = document.getElementById('audio');
-        console.log(audioRef);
-    }, []);
-
-    const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
-
     return (
         <Spin spinning={loading}>
             <Scrollbars
-                style={{ height: '100vh' }}
+                style={{ height: '40vh' }}
                 renderThumbVertical={({ style, ...props }) => {
                     const thumbStyle = {
                         color: `red`,
@@ -170,16 +144,6 @@ function App() {
                 }}
             >
                 <div className="App">
-                    <audio
-                        id="audio"
-                        ref={ref}
-                        controls
-                        onTimeUpdate={(e) =>
-                            console.log(
-                                getAudioDuration(ref?.current?.currentTime || 0)
-                            )
-                        }
-                    />
                     <Image src={src} />
                     <Upload
                         multiple
@@ -200,27 +164,6 @@ function App() {
                             Select File
                         </Button>
                     </Upload>
-                    <Button
-                        type="primary"
-                        shape="circle"
-                        size="large"
-                        icon={
-                            <PlayCircleOutlined
-                                onClick={() => ref.current?.play()}
-                            />
-                        }
-                    />
-                    <Button
-                        type="primary"
-                        shape="circle"
-                        size="large"
-                        icon={
-                            <PauseCircleOutlined
-                                onClick={() => ref.current?.pause()}
-                            />
-                        }
-                    />
-                    {getAudioDuration(ref.current?.duration || 0)}
                     <List
                         itemLayout="horizontal"
                         dataSource={files}
@@ -236,6 +179,7 @@ function App() {
                     />
                 </div>
             </Scrollbars>
+            <AudioPlayer />
         </Spin>
     );
 }

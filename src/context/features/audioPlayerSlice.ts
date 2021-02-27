@@ -2,23 +2,33 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from 'context/store';
 
 type AudioPlayer = {
-    htmlRef?: HTMLAudioElement;
+    currentTime: number;
+    duration: number;
 };
 
-const initialState: AudioPlayer = {};
+const initialState: AudioPlayer = {
+    currentTime: 0,
+    duration: 0,
+};
 
 export const audioPlayerSlice = createSlice({
     name: 'audioPlayer',
     initialState,
     reducers: {
-        setRef: (state, action: PayloadAction<HTMLAudioElement>) => {
-            state.htmlRef = action.payload as any;
+        setCurrentTime: (state, action: PayloadAction<number>) => {
+            state.currentTime = action.payload;
+        },
+        setDuration: (state, action: PayloadAction<number>) => {
+            state.duration = action.payload;
         },
     },
 });
 
-export const { setRef } = audioPlayerSlice.actions;
+export const { setCurrentTime, setDuration } = audioPlayerSlice.actions;
 
-export const selectAudioPlayer = (state: RootState) => state.audioPlayer;
+export const selectCurrentTime = (state: RootState) =>
+    state.audioPlayer.currentTime;
+
+export const selectDuration = (state: RootState) => state.audioPlayer.duration;
 
 export default audioPlayerSlice.reducer;
