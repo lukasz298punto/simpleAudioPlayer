@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "private": false,
     "homepage": "https://lukasz298punto.github.io/simpleAudioPlayer/",
+    "license": "MIT",
     "dependencies": {
         "@ant-design/colors": "^6.0.0",
         "@ant-design/dark-theme": "^2.0.2",
