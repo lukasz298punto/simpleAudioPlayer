@@ -3,6 +3,7 @@ import { RootState } from 'context/store';
 import { intervalToDuration } from 'date-fns';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import styled from 'styled-components';
 
 const formatNumberTime = (time: number) => (time < 10 ? `0${time}` : `${time}`);
 
@@ -21,11 +22,14 @@ type Props = {
     selector: (state: RootState) => number;
 };
 
+const Time = styled.div`
+    margin: 0px 7px;
+`;
+
 function TimeBlock({ selector }: Props) {
-    console.count('TimeBlock');
     const time = useSelector(selector);
 
-    return <div>{getAudioDuration(time)}</div>;
+    return <Time>{getAudioDuration(time)}</Time>;
 }
 
 export default TimeBlock;

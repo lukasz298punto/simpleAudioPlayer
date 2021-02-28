@@ -1,16 +1,23 @@
 import { UploadOutlined } from '@ant-design/icons';
-import { Button, Image, List, message, Spin, Upload } from 'antd';
-import Avatar from 'antd/lib/avatar/avatar';
-import { RcFile } from 'antd/lib/upload';
+import { Button, message, Spin, Tabs } from 'antd';
+import Modal from 'antd/lib/modal/Modal';
+import Upload, { RcFile } from 'antd/lib/upload';
 import 'App.less';
 import AudioPlayer from 'components/AudioPlayer';
+import TrackList from 'components/TrackList';
+import {
+    addUploadFile,
+    selectFile,
+    selectUploadFiles,
+} from 'context/features/filesSlice';
 import { selectLoading, setLoading } from 'context/features/globalSlice';
-import { addFile, selectUploadFiles } from 'context/features/uploadFilesSlice';
 import * as jsmediatags from 'jsmediatags-web';
 import { get } from 'lodash';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { useDispatch, useSelector } from 'react-redux';
+
+const { TabPane } = Tabs;
 
 interface FileInfo {
     tags: {
@@ -38,33 +45,22 @@ const possibleAudioType = [
 ];
 
 function App() {
-    const ref = useRef<HTMLAudioElement | null>(null);
-    const [src, setSrc] = useState('');
     const dispatch = useDispatch();
     const files = useSelector(selectUploadFiles);
+    const selectedFile = useSelector(selectFile);
     const loading = useSelector(selectLoading);
-
-    console.log(files, 'files');
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
     async function readFile(file: RcFile) {
         dispatch(setLoading(true));
 
         try {
             const src = await convertToArrayBuffer(file);
-            // const d: any = document.getElementById('audio');
-            const x = ref?.current;
-            if (x) {
-                x.src = src;
-            }
             const tags = await getTags(file);
             const cover = await getAudioCover(tags);
 
-            console.log(tags, 'tags');
-            console.log(get(tags, 'album'), 'album');
-            // setSrc(coverSrc);
-
             dispatch(
-                addFile({
+                addUploadFile({
                     uid: file.uid,
                     type: file.type,
                     cover,
@@ -126,10 +122,50 @@ function App() {
     const validateAudioFile = (type: string) =>
         possibleAudioType.includes(type);
 
+    useEffect(() => {
+        if (files.length > 0) {
+            setIsModalVisible(false);
+        } else {
+            setIsModalVisible(true);
+        }
+    }, [files]);
+
     return (
         <Spin spinning={loading}>
+            <Modal
+                title="Upload your favourite music"
+                visible={isModalVisible}
+                closable={false}
+                footer={null}
+                centered
+            >
+                <Upload
+                    multiple
+                    showUploadList={false}
+                    beforeUpload={(file) => {
+                        if (validateAudioFile(file.type)) {
+                            readFile(file);
+                        } else {
+                            message.error(
+                                `Incorrect audio format from ${file.name}`
+                            );
+                        }
+
+                        return false;
+                    }}
+                >
+                    <Button
+                        type="primary"
+                        loading={loading}
+                        icon={<UploadOutlined />}
+                    >
+                        Select Files
+                    </Button>
+                </Upload>
+            </Modal>
+
             <Scrollbars
-                style={{ height: '40vh' }}
+                style={{ height: 'calc(100vh - 60px)' }}
                 renderThumbVertical={({ style, ...props }) => {
                     const thumbStyle = {
                         color: `red`,
@@ -143,43 +179,23 @@ function App() {
                     );
                 }}
             >
-                <div className="App">
-                    <Image src={src} />
-                    <Upload
-                        multiple
-                        showUploadList={false}
-                        beforeUpload={(file) => {
-                            if (validateAudioFile(file.type)) {
-                                readFile(file);
-                            } else {
-                                message.error(
-                                    `Incorrect audio format from ${file.name}`
-                                );
-                            }
-
-                            return false;
-                        }}
-                    >
-                        <Button type="primary" icon={<UploadOutlined />}>
-                            Select File
-                        </Button>
-                    </Upload>
-                    <List
-                        itemLayout="horizontal"
-                        dataSource={files}
-                        renderItem={(item) => (
-                            <List.Item>
-                                <List.Item.Meta
-                                    avatar={<Avatar src={item.cover} />}
-                                    title={item.title}
-                                    description="Ant Design, a design language for background applications, is refined by Ant UED Team"
-                                />
-                            </List.Item>
-                        )}
-                    />
-                </div>
+                {files.length > 0 && (
+                    <div className="card-container">
+                        <Tabs type="card">
+                            <TabPane tab="All" key="1">
+                                <TrackList />
+                            </TabPane>
+                            <TabPane tab="Genre" key="2">
+                                <p>soon</p>
+                            </TabPane>
+                            <TabPane tab="Artists" key="3">
+                                <p>soon</p>
+                            </TabPane>
+                        </Tabs>
+                    </div>
+                )}
             </Scrollbars>
-            <AudioPlayer />
+            {selectedFile && <AudioPlayer audioFile={selectedFile} />}
         </Spin>
     );
 }

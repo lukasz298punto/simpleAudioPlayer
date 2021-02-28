@@ -2,7 +2,15 @@ const CracoLessPlugin = require('craco-less');
 
 module.exports = {
     babel: {
-        plugins: ['babel-plugin-styled-components'],
+        plugins: [
+            [
+                'babel-plugin-styled-components',
+                {
+                    pure: true,
+                    displayName: true,
+                },
+            ],
+        ],
     },
     plugins: [
         {

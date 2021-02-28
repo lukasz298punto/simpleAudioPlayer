@@ -1,11 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import audioPlayerReducer from 'context/features/audioPlayerSlice';
+import filesReducer from 'context/features/filesSlice';
 import globalReducer from 'context/features/globalSlice';
-import uploadFilesReducer from 'context/features/uploadFilesSlice';
 
 export const store = configureStore({
     reducer: {
-        uploadFiles: uploadFilesReducer,
+        files: filesReducer,
         audioPlayer: audioPlayerReducer,
         global: globalReducer,
     },

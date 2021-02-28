@@ -1,7 +1,5 @@
 import {
     BackwardOutlined,
-    FastBackwardOutlined,
-    FastForwardOutlined,
     ForwardOutlined,
     PauseCircleOutlined,
     PlayCircleOutlined,
@@ -15,41 +13,42 @@ import {
     setCurrentTime,
     setDuration,
 } from 'context/features/audioPlayerSlice';
-import { selectUploadFiles } from 'context/features/uploadFilesSlice';
-import { get } from 'lodash';
+import { AudioFile } from 'context/features/filesSlice';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { ToggleButton } from 'style/components';
 import styled from 'styled-components';
 
 const Player = styled.div`
-    background-color: green;
+    display: flex;
+    background-color: #434343;
+    padding: 10px;
+    align-items: center;
 
-    .ant-slider-track {
+    /* .ant-slider-track {
         background-color: red;
+    } */
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+
+    & > button {
+        margin: 0px 2px;
     }
 `;
 
-function Blocke() {
-    console.count('Blocke');
-    const durr = useSelector(selectCurrentTime);
+type Props = {
+    audioFile: AudioFile;
+};
 
-    return <div>{durr}</div>;
-}
-
-function AudioPlayer() {
+function AudioPlayer({ audioFile }: Props) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isCanPlay, setIsCanPlay] = useState(false);
-    // const [duration, setDuration] = useState(0);
-    // const [currentTime, setCurrentTime] = useState(0);
+    const [isLooped, setIsLooped] = useState(false);
     const ref = useRef<HTMLAudioElement | null>(null);
     const dispatch = useDispatch();
-    let audio = null;
-
     const duration = useSelector(selectDuration);
-
-    console.count('AudioPlayer');
-
-    const files = useSelector(selectUploadFiles);
 
     const stop = () => {
         setIsPlaying(false);
@@ -73,13 +72,44 @@ function AudioPlayer() {
         setIsPlaying(false);
     };
 
+    const loop = () => {
+        setIsLooped((prev) => !prev);
+    };
+
+    const handleTimeUpdate = () => {
+        dispatch(setCurrentTime(ref?.current?.currentTime || 0));
+
+        if (
+            isTrackEnding(
+                ref?.current?.currentTime || 0,
+                ref?.current?.duration || 0
+            ) &&
+            isLooped
+        ) {
+            setAudioCurrentTime(0);
+            ref.current?.play();
+        }
+
+        if (isTrackEnding(ref?.current?.currentTime, ref?.current?.duration)) {
+            setIsPlaying(false);
+        }
+    };
+
+    const isTrackEnding = (currentTime?: number, duration?: number) => {
+        if (!currentTime || !duration) {
+            return false;
+        }
+
+        return currentTime === duration;
+    };
+
     useEffect(() => {
         if (isPlaying) {
             ref.current?.play();
         } else {
             ref.current?.pause();
         }
-    }, [isPlaying]);
+    }, [isPlaying, audioFile]);
 
     return (
         <Player>
@@ -96,29 +126,17 @@ function AudioPlayer() {
                 size="large"
                 type="primary"
                 shape="circle"
-                icon={<FastBackwardOutlined />}
-            />
-            <Button
-                disabled={!isCanPlay}
-                size="large"
-                type="primary"
-                shape="circle"
-                icon={<FastForwardOutlined />}
-            />
-            <Button
-                disabled={!isCanPlay}
-                size="large"
-                type="primary"
-                shape="circle"
                 icon={<ForwardOutlined />}
                 onClick={fastForward}
             />
-            <Button
+            <ToggleButton
                 disabled={!isCanPlay}
                 size="large"
                 type="primary"
                 shape="circle"
                 icon={<RedoOutlined />}
+                active={isLooped ? 1 : 0}
+                onClick={loop}
             />
             {isPlaying ? (
                 <Button
@@ -141,25 +159,23 @@ function AudioPlayer() {
             )}
             <TimeBlock selector={selectCurrentTime} />
             <audio
-                src={get(files, '[0].src')}
+                src={audioFile.src}
                 id="audio"
                 ref={ref}
-                // controls
-                onCanPlay={() => setIsCanPlay(true)}
-                onLoadedData={() =>
-                    dispatch(setDuration(ref?.current?.duration || 0))
-                }
-                onTimeUpdate={
-                    (e) =>
-                        dispatch(setCurrentTime(ref?.current?.currentTime || 0))
-                    // setCurrentTime(ref?.current?.currentTime || 0)
-                }
+                onCanPlay={() => {
+                    setIsCanPlay(true);
+                }}
+                onLoadedData={() => {
+                    dispatch(setDuration(ref?.current?.duration || 0));
+                }}
+                onTimeUpdate={handleTimeUpdate}
             />
-            <TimeBlock selector={selectDuration} />
             <TimeBar
                 setAudioCurrentTime={setAudioCurrentTime}
                 setIsPlaying={setIsPlaying}
+                isPlaying={isPlaying}
             />
+            <TimeBlock selector={selectDuration} />
         </Player>
     );
 }
